@@ -352,6 +352,59 @@ const serialized = tx.serialize().toString('base64');
 console.log(serialized);
 ```
 
+## 13. Logs y Events en Solana
+
+### Logs en Solana
+
+Los programas pueden emitir logs para depuración usando macros especiales:
+
+- En Rust nativo:
+```rust
+msg!("Hola desde el programa");
+```
+- En Anchor:
+```rust
+msg!("Valor recibido: {}", valor);
+```
+Estos logs se pueden ver al ejecutar transacciones (por ejemplo, usando `solana logs` o en el output de Anchor CLI).
+
+### Events en Anchor
+
+Anchor permite definir eventos que se emiten durante la ejecución del programa y pueden ser leídos por clientes:
+
+#### Definir un evento en Anchor
+```rust
+#[event]
+pub struct MiEvento {
+    pub user: Pubkey,
+    pub cantidad: u64,
+}
+
+// Emitir el evento en una instrucción:
+emit!(MiEvento {
+    user: *ctx.accounts.user.key,
+    cantidad: 42,
+});
+```
+
+#### Leer logs y eventos desde TypeScript
+
+Puedes obtener los logs de una transacción así:
+```typescript
+const tx = await program.methods.miMetodo().rpc();
+const txInfo = await connection.getTransaction(tx, { commitment: "confirmed" });
+console.log(txInfo.meta.logMessages);
+```
+
+Para parsear eventos de Anchor:
+```typescript
+const events = program._events.parseLogs(txInfo.meta.logMessages);
+console.log(events);
+```
+
+- Los eventos aparecen en los logs como líneas con el prefijo `Program log: EVENT_JSON`.
+- Anchor provee utilidades para parsear estos eventos automáticamente.
+
 ---
 
 Esta guía cubre los aspectos esenciales para empezar a trabajar con Solana, tanto desde la terminal como desde código y desarrollo de smart contracts.
